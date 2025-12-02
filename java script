@@ -1,0 +1,80 @@
+// Armazenar scores em variáveis globais
+let scoreTime1 = 0;
+let scoreTime2 = 0;
+
+// Função para aumentar score
+function aumentarScore(time) {
+    if (time === 1) {
+        if (scoreTime1 < 10) {
+            scoreTime1++;
+            atualizarDisplay(1);
+        }
+    } else if (time === 2) {
+        if (scoreTime2 < 10) {
+            scoreTime2++;
+            atualizarDisplay(2);
+        }
+    }
+}
+
+// Função para diminuir score
+function diminuirScore(time) {
+    if (time === 1) {
+        if (scoreTime1 > 0) {
+            scoreTime1--;
+            atualizarDisplay(1);
+        }
+    } else if (time === 2) {
+        if (scoreTime2 > 0) {
+            scoreTime2--;
+            atualizarDisplay(2);
+        }
+    }
+}
+
+// Função para definir score via select
+function definirScore(time, valor) {
+    if (valor !== '') {
+        const novoScore = parseInt(valor);
+        if (time === 1) {
+            scoreTime1 = novoScore;
+            atualizarDisplay(1);
+        } else if (time === 2) {
+            scoreTime2 = novoScore;
+            atualizarDisplay(2);
+        }
+        // Resetar o select para a opção padrão
+        document.getElementById(`select${time}`).value = '';
+    }
+}
+
+// Função para atualizar o display
+function atualizarDisplay(time) {
+    const scoreElement = document.getElementById(`score${time}`);
+    const score = time === 1 ? scoreTime1 : scoreTime2;
+    
+    // Remover todas as classes de cor anteriores
+    scoreElement.className = 'score-display';
+    
+    // Adicionar a classe de cor correspondente ao score
+    scoreElement.classList.add(`score-${score}`);
+    
+    // Atualizar o texto
+    scoreElement.textContent = score;
+}
+
+// Função para resetar o placar
+function resetarPlacar() {
+    scoreTime1 = 0;
+    scoreTime2 = 0;
+    atualizarDisplay(1);
+    atualizarDisplay(2);
+    document.getElementById('select1').value = '';
+    document.getElementById('select2').value = '';
+}
+
+// Inicializar displays ao carregar a página
+document.addEventListener('DOMContentLoaded', function() {
+    atualizarDisplay(1);
+    atualizarDisplay(2);
+});
