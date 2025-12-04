@@ -1,174 +1,51 @@
-// ===== Configurações padrão =====
-const CONFIG_DEFAULT = {
-  gameMinutes: 10,    // duração por período
-  shotSeconds: 24,    // posse de bola
-  foulLimit: 5,       // limite de faltas por período
-  maxTimeouts: 7      // limite de tempos pedidos
+// Dados reais extraídos do Observatório Sebrae (2024/2025)[43dcd9a7-70db-4a1f-b0ae-981daa162054](https://observatorio.sebrae.com.br/profile/geo/jaboatao-dos-guararapes?citationMarker=43dcd9a7-70db-4a1f-b0ae-981daa162054&citationId=1 "observatorio.sebrae.com.br")
+const dadosJaboatao = {
+  populacao: 683285,
+  empregados: 102037,
+  empresas: 59272,
+  remuneracao: 2299,
+  empregosAno: {
+    2022: 110500,
+    2023: 110600,
+    2024: 102037
+  },
+  enemMedio: {
+    2021: 350,
+    2022: 355,
+    2023: 356
+  }
 };
 
-// ===== Estado inicial =====
-const initialState = () => ({
-  teamA: { name: 'Time A', score: 0, fouls: 0, timeouts: 0 },
-  teamB: { name: 'Time B', score: 0, fouls: 0, timeouts: 0 },
-  period: 1,
-  possession: 'A',
-  running: false,
-  gameMs: CONFIG_DEFAULT.gameMinutes * 60 * 1000,
-  shotMs: CONFIG_DEFAULT.shotSeconds * 1000,
-  config: { ...CONFIG_DEFAULT }
+// Atualiza cards
+document.getElementById("populacao").textContent = dadosJaboatao.populacao.toLocaleString("pt-BR");
+document.getElementById("empregados").textContent = dadosJaboatao.empregados.toLocaleString("pt-BR");
+document.getElementById("empresas").textContent = dadosJaboatao.empresas.toLocaleString("pt-BR");
+document.getElementById("remuneracao").textContent = "R$ " + dadosJaboatao.remuneracao.toLocaleString("pt-BR");
+
+// Gráfico de empregos
+new Chart(document.getElementById("chartEmpregos"), {
+  type: "line",
+  data: {
+    labels: Object.keys(dadosJaboatao.empregosAno),
+    datasets: [{
+      label: "Empregados",
+      data: Object.values(dadosJaboatao.empregosAno),
+      borderColor: "#1e3a8a",
+      backgroundColor: "rgba(30,58,138,0.2)",
+      fill: true
+    }]
+  }
 });
 
-let state = initialState();
-let undoStack = [];
-let timerId = null;
-
-// ===== Utilitários =====
-const deepClone = obj => JSON.parse(JSON.stringify(obj));
-const fmtScore = n => String(n).padStart(2, '0');
-const fmtClock = ms => {
-  ms = Math.max(0, ms);
-  const totalSec = Math.floor(ms / 1000);
-  const m = Math.floor(totalSec / 60);
-  const s = totalSec % 60;
-  return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-};
-
-// ===== Elementos =====
-const els = {
-  nameA: document.getElementById('nameA'),
-  nameB: document.getElementById('nameB'),
-  scoreA: document.getElementById('scoreA'),
-  scoreB: document.getElementById('scoreB'),
-  foulsA: document.getElementById('foulsA'),
-  foulsB: document.getElementById('foulsB'),
-  timeoutsA: document.getElementById('timeoutsA'),
-  timeoutsB: document.getElementById('timeoutsB'),
-  period: document.getElementById('period'),
-  possession: document.getElementById('possession'),
-  gameClock: document.getElementById('gameClock'),
-  shotClock: document.getElementById('shotClock'),
-  status: document.getElementById('status'),
-  togglePlay: document.getElementById('togglePlay'),
-  resetShot: document.getElementById('resetShot'),
-  nextPeriod: document.getElementById('nextPeriod'),
-  switchPoss: document.getElementById('switchPoss'),
-  undo: document.getElementById('undo'),
-  resetAll: document.getElementById('resetAll')
-};
-
-// ===== Renderização =====
-function render() {
-  els.nameA.value = state.teamA.name;
-  els.nameB.value = state.teamB.name;
-  els.scoreA.textContent = fmtScore(state.teamA.score);
-  els.scoreB.textContent = fmtScore(state.teamB.score);
-  els.foulsA.textContent = state.teamA.fouls;
-  els.foulsB.textContent = state.teamB.fouls;
-  els.timeoutsA.textContent = state.teamA.timeouts;
-  els.timeoutsB.textContent = state.teamB.timeouts;
-  els.period.textContent = state.period;
-  els.possession.textContent = state.possession;
-  els.gameClock.textContent = fmtClock(state.gameMs);
-  els.shotClock.textContent = Math.ceil(state.shotMs / 1000);
-  els.status.textContent = state.running ? 'Em jogo' : 'Parado';
-  els.togglePlay.textContent = state.running ? 'Pausar' : 'Iniciar';
-}
-
-// ===== Undo =====
-function pushUndo() {
-  undoStack.push(deepClone(state));
-  if (undoStack.length > 200) undoStack.shift();
-}
-
-// ===== Relógio =====
-function tick() {
-  const step = 100;
-  state.gameMs = Math.max(0, state.gameMs - step);
-  state.shotMs = Math.max(0, state.shotMs - step);
-  render();
-  if (state.gameMs === 0) stopClock();
-}
-
-function startClock() {
-  if (state.running) return;
-  state.running = true;
-  timerId = setInterval(tick, 100);
-  render();
-}
-
-function stopClock() {
-  if (!state.running) return;
-  state.running = false;
-  clearInterval(timerId);
-  timerId = null;
-  render();
-}
-
-// ===== Eventos =====
-els.nameA.addEventListener('change', e => {
-  pushUndo();
-  state.teamA.name = e.target.value || 'Time A';
-  render();
+// Gráfico de educação (ENEM)
+new Chart(document.getElementById("chartEducacao"), {
+  type: "bar",
+  data: {
+    labels: Object.keys(dadosJaboatao.enemMedio),
+    datasets: [{
+      label: "Média ENEM",
+      data: Object.values(dadosJaboatao.enemMedio),
+      backgroundColor: "#10b981"
+    }]
+  }
 });
-els.nameB.addEventListener('change', e => {
-  pushUndo();
-  state.teamB.name = e.target.value || 'Time B';
-  render();
-});
-
-document.querySelectorAll('[data-action]').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const act = btn.getAttribute('data-action');
-    pushUndo();
-    if (act.startsWith('scoreA')) {
-      const delta = act.includes('+') ? parseInt(act.split('+')[1]) : -1;
-      state.teamA.score = Math.max(0, state.teamA.score + delta);
-    }
-    if (act.startsWith('scoreB')) {
-      const delta = act.includes('+') ? parseInt(act.split('+')[1]) : -1;
-      state.teamB.score = Math.max(0, state.teamB.score + delta);
-    }
-    render();
-  });
-});
-
-els.togglePlay.addEventListener('click', () => {
-  if (state.running) stopClock(); else startClock();
-});
-els.resetShot.addEventListener('click', () => {
-  pushUndo();
-  state.shotMs = state.config.shotSeconds * 1000;
-  render();
-});
-els.nextPeriod.addEventListener('click', () => {
-  pushUndo();
-  state.period++;
-  state.teamA.fouls = 0;
-  state.teamB.fouls = 0;
-  state.gameMs = state.config.gameMinutes * 60 * 1000;
-  state.shotMs = state.config.shotSeconds * 1000;
-  stopClock();
-  render();
-});
-els.switchPoss.addEventListener('click', () => {
-  pushUndo();
-  state.possession = state.possession === 'A' ? 'B' : 'A';
-  state.shotMs = state.config.shotSeconds * 1000;
-  render();
-});
-els.undo.addEventListener('click', () => {
-  const prev = undoStack.pop();
-  if (!prev) return;
-  state = prev;
-  render();
-});
-els.resetAll.addEventListener('click', () => {
-  if (!confirm('Zerar tudo?')) return;
-  state = initialState();
-  undoStack = [];
-  stopClock();
-  render();
-});
-
-// ===== Inicialização =====
-render();
